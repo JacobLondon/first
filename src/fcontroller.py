@@ -33,14 +33,14 @@ class FController(Controller):
         self.map_width = 16
         self.map_height = 16
         self.depth = 16
-        self.pixel_width = 25
+        self.pixel_width = 10
         
         Drawer(self, refresh=(self.walls))
 
         def keyl():
-            self.pa -= 0.8 * self.delta_time
+            self.pa -= 1.5 * self.delta_time
         def keyr():
-            self.pa += 0.8 * self.delta_time
+            self.pa += 1.5 * self.delta_time
         def keyw():
             self.px += sin(self.pa) * 5 * self.delta_time
             self.py += cos(self.pa) * 5 * self.delta_time
@@ -55,11 +55,27 @@ class FController(Controller):
             if self.map[int(self.py)][int(self.px)] == '#':
                 self.px += sin(self.pa) * 5 * self.delta_time
                 self.py += cos(self.pa) * 5 * self.delta_time
+        def keyd():
+            self.px += sin(self.pa + pi / 2) * 5 * self.delta_time
+            self.py += cos(self.pa + pi / 2) * 5 * self.delta_time
+            # forward collision detection
+            if self.map[int(self.py)][int(self.px)] == '#':
+                self.px += sin(self.pa - pi / 2) * 5 * self.delta_time
+                self.py += cos(self.pa - pi / 2) * 5 * self.delta_time
+        def keya():
+            self.px += sin(self.pa - pi / 2) * 5 * self.delta_time
+            self.py += cos(self.pa - pi / 2) * 5 * self.delta_time
+            # forward collision detection
+            if self.map[int(self.py)][int(self.px)] == '#':
+                self.px += sin(self.pa + pi / 2) * 5 * self.delta_time
+                self.py += cos(self.pa + pi / 2) * 5 * self.delta_time
 
         Event(self, action=keyl, keys=(pygame.K_LEFT,))
         Event(self, action=keyr, keys=(pygame.K_RIGHT,))
         Event(self, action=keyw, keys=(pygame.K_w,))
         Event(self, action=keys, keys=(pygame.K_s,))
+        Event(self, action=keyd, keys=(pygame.K_d,))
+        Event(self, action=keya, keys=(pygame.K_a,))
 
     def walls(self):
 
@@ -101,14 +117,7 @@ class FController(Controller):
             else:
                 shade = (0, 0, 0)
 
-            # draw the column
-            for y in range(self.screen_height):
-                if y < ceiling:
-                    # must be roof
-                    self.painter.fill_area(x * self.pixel_width, y, self.pixel_width, 1, (10, 10, 10))
-                elif y > ceiling and y <= floor:
-                    # must be wall
-                    self.painter.fill_area(x * self.pixel_width, y, self.pixel_width, 1, shade)
-                else:
-                    # must be floor
-                    self.painter.fill_area(x * self.pixel_width, y, self.pixel_width, 1, (150, 150, 150))
+            # draw walls
+            self.painter.fill_area(x * self.pixel_width, ceiling, self.pixel_width, floor, shade)
+            # draw floor
+            self.painter.fill_area(x * self.pixel_width, floor, self.pixel_width, self.screen_height - floor, (150, 150, 150))
