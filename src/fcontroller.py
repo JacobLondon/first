@@ -14,6 +14,7 @@ class FController(Controller):
         Controller.__init__(self, Interface(text, resolution), debug=True)
 
         # player position
+        #self.mouse.locked = True
         self.px = 8
         self.py = 8
         self.pa = 0
@@ -25,7 +26,7 @@ class FController(Controller):
             '################',
             '#..............#',
             '#...........#..#',
-            '#..............#',
+            '#....##........#',
             '#..........##..#',
             '#..............#',
             '#..............#',
@@ -46,6 +47,7 @@ class FController(Controller):
         self.cast_step = 0.1
         self.pixel_width = 10
 
+        #Drawer(self, refresh=self.mouse_rotate)
         Drawer(self, refresh=self.floor)
         Drawer(self, refresh=self.walls)
 
@@ -100,7 +102,16 @@ class FController(Controller):
             shade = (s, s, s)
 
             # draw walls
-            self.painter.fill_area(x * self.pixel_width, ceiling, self.pixel_width, floor - ceiling, shade)
+            self.painter.fill_area(
+                x * self.pixel_width,
+                ceiling,
+                self.pixel_width,
+                floor - ceiling,
+                shade
+            )
+
+    def mouse_rotate(self):
+        self.pa += self.mouse.yaw * self.delta_time
 
     def rotate(self, amount: float):
         self.pa += amount * self.delta_time
