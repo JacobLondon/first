@@ -4,6 +4,12 @@ import pygame
 from pyngine import Controller, Interface, Drawer, Event
 
 class FController(Controller):
+    ROT_R = 1.5
+    ROT_L = -1.5
+    MOVE_F = 1
+    MOVE_B = -1
+    MOVE_R = 1
+    MOVE_L = -1
     def __init__(self, text, resolution):
         Controller.__init__(self, Interface(text, resolution), debug=True)
 
@@ -11,7 +17,7 @@ class FController(Controller):
         self.px = 8
         self.py = 8
         self.pa = 0
-        self.fov = pi / 4
+        self.fov = pi / 3
         self.map = [
             '################',
             '#..............#',
@@ -32,50 +38,22 @@ class FController(Controller):
         ]
         self.map_width = 16
         self.map_height = 16
+        self.wall_char = '#'
         self.depth = 16
-        self.pixel_width = 10
-        
-        Drawer(self, refresh=(self.walls))
+        self.pixel_width = 5
 
-        def keyl():
-            self.pa -= 1.5 * self.delta_time
-        def keyr():
-            self.pa += 1.5 * self.delta_time
-        def keyw():
-            self.px += sin(self.pa) * 5 * self.delta_time
-            self.py += cos(self.pa) * 5 * self.delta_time
-            # forward collision detection
-            if self.map[int(self.py)][int(self.px)] == '#':
-                self.px -= sin(self.pa) * 5 * self.delta_time
-                self.py -= cos(self.pa) * 5 * self.delta_time
-        def keys():
-            self.px -= sin(self.pa) * 5 * self.delta_time
-            self.py -= cos(self.pa) * 5 * self.delta_time
-            # backward collision detection
-            if self.map[int(self.py)][int(self.px)] == '#':
-                self.px += sin(self.pa) * 5 * self.delta_time
-                self.py += cos(self.pa) * 5 * self.delta_time
-        def keyd():
-            self.px += sin(self.pa + pi / 2) * 5 * self.delta_time
-            self.py += cos(self.pa + pi / 2) * 5 * self.delta_time
-            # forward collision detection
-            if self.map[int(self.py)][int(self.px)] == '#':
-                self.px += sin(self.pa - pi / 2) * 5 * self.delta_time
-                self.py += cos(self.pa - pi / 2) * 5 * self.delta_time
-        def keya():
-            self.px += sin(self.pa - pi / 2) * 5 * self.delta_time
-            self.py += cos(self.pa - pi / 2) * 5 * self.delta_time
-            # forward collision detection
-            if self.map[int(self.py)][int(self.px)] == '#':
-                self.px += sin(self.pa + pi / 2) * 5 * self.delta_time
-                self.py += cos(self.pa + pi / 2) * 5 * self.delta_time
+        Drawer(self, refresh=self.floor)
+        Drawer(self, refresh=self.walls)
 
-        Event(self, action=keyl, keys=(pygame.K_LEFT,))
-        Event(self, action=keyr, keys=(pygame.K_RIGHT,))
-        Event(self, action=keyw, keys=(pygame.K_w,))
-        Event(self, action=keys, keys=(pygame.K_s,))
-        Event(self, action=keyd, keys=(pygame.K_d,))
-        Event(self, action=keya, keys=(pygame.K_a,))
+        Event(self, action=self.rotate, args=(FController.ROT_L), keys=(pygame.K_LEFT))
+        Event(self, action=self.rotate, args=(FController.ROT_R), keys=(pygame.K_RIGHT))
+        Event(self, action=self.move, args=(FController.MOVE_F, 0), keys=(pygame.K_w))
+        Event(self, action=self.move, args=(FController.MOVE_B, 0), keys=(pygame.K_s))
+        Event(self, action=self.move, args=(1, FController.MOVE_R), keys=(pygame.K_d))
+        Event(self, action=self.move, args=(1, FController.MOVE_L), keys=(pygame.K_a))
+
+    def floor(self):
+        self.painter.fill_area(0, self.screen_height / 2, self.screen_width, self.screen_height / 2, color=(150, 150, 150))
 
     def walls(self):
 
@@ -100,24 +78,25 @@ class FController(Controller):
                     distance_to_wall = self.depth
                 else:
                     # ray is in bounds, see if cell is a wall
-                    if self.map[test_y][test_x] == '#':
+                    if self.map[test_y][test_x] == self.wall_char:
                         hit_wall = True
 
             ceiling = int(self.screen_height / 2) - self.screen_height / distance_to_wall
             floor = self.screen_height - ceiling
-            shade = (0, 0, 0)
-            if distance_to_wall < self.depth / 4:
-                shade = (255, 255, 255)
-            elif distance_to_wall < self.depth / 3:
-                shade = (200, 200, 200)
-            elif distance_to_wall < self.depth / 2:
-                shade = (100, 100, 100)
-            elif distance_to_wall < self.depth:
-                shade = (50, 50, 50)
-            else:
-                shade = (0, 0, 0)
+            s = max(min(int((distance_to_wall ** -1) * 255 * 3), 255), 0)
+            shade = (s, s, s)
 
             # draw walls
-            self.painter.fill_area(x * self.pixel_width, ceiling, self.pixel_width, floor, shade)
-            # draw floor
-            self.painter.fill_area(x * self.pixel_width, floor, self.pixel_width, self.screen_height - floor, (150, 150, 150))
+            self.painter.fill_area(x * self.pixel_width, ceiling, self.pixel_width, floor - ceiling, shade)
+
+    def rotate(self, amount: float):
+        self.pa += amount * self.delta_time
+
+    def move(self, direction: int, strafe: int):
+        self.px += float(direction * sin(self.pa + strafe * pi / 2) * 5 * self.delta_time)
+        self.py += float(direction * cos(self.pa + strafe * pi / 2) * 5 * self.delta_time)
+        # forward collision detection
+        if self.map[int(self.py)][int(self.px)] == self.wall_char:
+            if not strafe == 0: direction = -1
+            self.px -= float(direction * sin(self.pa - strafe * pi / 2) * 5 * self.delta_time)
+            self.py -= float(direction * cos(self.pa - strafe * pi / 2) * 5 * self.delta_time)
