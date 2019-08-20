@@ -3,7 +3,7 @@ from typing import List, Tuple
 import pygame
 from pyngine import Controller, Interface, Drawer, Event
 
-class FController(Controller):
+class Renderer(Controller):
 
     MOVE_F = 1
     MOVE_B = -1
@@ -14,12 +14,11 @@ class FController(Controller):
         Controller.__init__(self, Interface(text, resolution), debug=True)
 
         # player position
-        #self.mouse.locked = True
         self.px = 8
         self.py = 8
         self.pa = 0
         self.fov = pi / 3
-        self.walk_step = 5
+        self.walk_step = 3
         self.rot_r = 2.0
         self.rot_l = -self.rot_r
         self.map = [
@@ -30,9 +29,9 @@ class FController(Controller):
             '#..........##..#',
             '#..............#',
             '#..............#',
-            '#..............#',
-            '#..............#',
-            '#..............#',
+            '#......#.......#',
+            '#......#.......#',
+            '#......#.......#',
             '#..............#',
             '#.....###..#####',
             '#..............#',
@@ -45,18 +44,17 @@ class FController(Controller):
         self.wall_char = '#'
         self.depth = 16
         self.cast_step = 0.1
-        self.pixel_width = 10
+        self.pixel_width = 5
 
-        #Drawer(self, refresh=self.mouse_rotate)
         Drawer(self, refresh=self.floor)
         Drawer(self, refresh=self.walls)
 
         Event(self, action=self.rotate, args=(self.rot_l), keys=(pygame.K_LEFT))
         Event(self, action=self.rotate, args=(self.rot_r), keys=(pygame.K_RIGHT))
-        Event(self, action=self.move, args=(FController.MOVE_F, 0, self.walk_step), keys=(pygame.K_w))
-        Event(self, action=self.move, args=(FController.MOVE_B, 0, self.walk_step), keys=(pygame.K_s))
-        Event(self, action=self.move, args=(1, FController.MOVE_R, self.walk_step), keys=(pygame.K_d))
-        Event(self, action=self.move, args=(1, FController.MOVE_L, self.walk_step), keys=(pygame.K_a))
+        Event(self, action=self.move, args=(Renderer.MOVE_F, 0, self.walk_step), keys=(pygame.K_w))
+        Event(self, action=self.move, args=(Renderer.MOVE_B, 0, self.walk_step), keys=(pygame.K_s))
+        Event(self, action=self.move, args=(1, Renderer.MOVE_R, self.walk_step), keys=(pygame.K_d))
+        Event(self, action=self.move, args=(1, Renderer.MOVE_L, self.walk_step), keys=(pygame.K_a))
 
     def floor(self):
         self.painter.fill_area(
@@ -109,9 +107,6 @@ class FController(Controller):
                 floor - ceiling,
                 shade
             )
-
-    def mouse_rotate(self):
-        self.pa += self.mouse.yaw * self.delta_time
 
     def rotate(self, amount: float):
         self.pa += amount * self.delta_time

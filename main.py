@@ -1,5 +1,5 @@
-from src import *
+from src import Program
 
 if __name__ == '__main__':
-    c = FController('First', (640, 480))
+    c = Program(['First', (640, 480)])
     c.run()
