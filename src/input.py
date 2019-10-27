@@ -15,7 +15,7 @@ class Input(Renderer):
         self.mouse.smoothing = .75
 
         Drawer(self, refresh=self.mouse_rotate)
-        Event(self, action=self.close, keys=(pygame.K_ESCAPE))
+        Event(self, action=self.exit_program, keys=(pygame.K_ESCAPE))
 
     def mouse_rotate(self):
         self.pa += self.mouse.dx * self.delta_time
