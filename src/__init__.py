@@ -1,1 +1,1 @@
-from .program import Program
+from .input import Input

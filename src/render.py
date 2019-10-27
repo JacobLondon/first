@@ -11,7 +11,7 @@ class Renderer(Controller):
     MOVE_L = -1
 
     def __init__(self, text, resolution):
-        Controller.__init__(self, Interface(text, resolution), debug=True)
+        Controller.__init__(self, text, resolution, debug=True)
 
         # player position
         self.px = 8
@@ -57,7 +57,7 @@ class Renderer(Controller):
         Event(self, action=self.move, args=(1, Renderer.MOVE_L, self.walk_step), keys=(pygame.K_a))
 
     def floor(self):
-        self.painter.fill_area(
+        self.painter.fill_rect(
             0,
             self.screen_height / 2,
             self.screen_width,
@@ -100,7 +100,7 @@ class Renderer(Controller):
             shade = (s, s, s)
 
             # draw walls
-            self.painter.fill_area(
+            self.painter.fill_rect(
                 x * self.pixel_width,
                 ceiling,
                 self.pixel_width,

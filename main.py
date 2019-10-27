@@ -1,5 +1,5 @@
-from src import Program
+from src import Input
 
 if __name__ == '__main__':
-    c = Program(['First', (640, 480)])
+    c = Input(['First Person', (640, 480)])
     c.run()
